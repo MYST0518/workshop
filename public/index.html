@@ -112,6 +112,7 @@
 
       <div class="action-buttons">
         <a id="preview-link" href="#" target="_blank" class="btn btn-secondary">再生ページを開く</a>
+        <a id="index-download-link" href="#" class="btn btn-secondary" style="border-color: #e8729a; color: #e8729a; background: white;">曲をダウンロード</a>
         <button type="button" id="upload-another" class="btn btn-ghost">もう一曲アップロード</button>
       </div>
     </section>
@@ -252,6 +253,7 @@
       document.getElementById('result-song-title').textContent = result.title;
       document.getElementById('result-url').value = result.url;
       document.getElementById('preview-link').href = result.url;
+      document.getElementById('index-download-link').href = `/api/download/${result.id}`;
 
       // Generate QR code via API (no external JS library needed)
       const qrContainer = document.getElementById('qr-code');
