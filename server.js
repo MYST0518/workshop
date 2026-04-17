@@ -108,39 +108,41 @@ app.get('/api/audio/:id', async (req, res) => {
       return res.status(404).json({ error: '曲が見つかりません' });
     }
 
-    const response = await r2.getFromR2(song.file_path);
-    const fileSize = song.file_size || response.ContentLength;
-
-    // Handle Range requests for seeking
     const range = req.headers.range;
-    if (range) {
-      const parts = range.replace(/bytes=/, '').split('-');
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunkSize = end - start + 1;
-
-      res.writeHead(206, {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunkSize,
-        'Content-Type': song.mime_type
-      });
-      
-      // Note: Full stream is returned from R2, we could optimize this with range but GetObject supports range
-      // For simplicity in this workshop, we pipe the stream. 
-      // R2 GetObject supports 'Range' parameter if needed.
-      response.Body.pipe(res);
-    } else {
-      res.writeHead(200, {
-        'Content-Length': fileSize,
-        'Content-Type': song.mime_type,
-        'Accept-Ranges': 'bytes'
-      });
-      response.Body.pipe(res);
+    let response;
+    
+    try {
+      response = await r2.getFromR2(song.file_path, range);
+    } catch (err) {
+      // If the range is invalid, fallback to getting the whole file
+      if (err.name === 'InvalidRange' || err.$metadata?.httpStatusCode === 416) {
+        response = await r2.getFromR2(song.file_path);
+      } else {
+        throw err;
+      }
     }
+
+    const headers = {
+      'Accept-Ranges': 'bytes',
+      'Content-Type': song.mime_type || response.ContentType || 'audio/mpeg',
+      'Content-Length': response.ContentLength
+    };
+
+    // If R2 returns a partial content (206) it includes ContentRange.
+    // If not, we just return 200 OK.
+    if (range && response.ContentRange) {
+      headers['Content-Range'] = response.ContentRange;
+      res.writeHead(206, headers);
+    } else {
+      res.writeHead(200, headers);
+    }
+
+    response.Body.pipe(res);
   } catch (err) {
     console.error('Streaming error:', err);
-    res.status(500).json({ error: 'ファイルの読み込みに失敗しました' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'ファイルの読み込みに失敗しました' });
+    }
   }
 });
 

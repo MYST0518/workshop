@@ -43,12 +43,17 @@ async function uploadToR2(buffer, fileName, contentType) {
 /**
  * Get a file stream from R2
  * @param {string} fileName 
+ * @param {string} range 
  */
-async function getFromR2(fileName) {
-  const command = new GetObjectCommand({
+async function getFromR2(fileName, range = undefined) {
+  const params = {
     Bucket: R2_BUCKET_NAME,
     Key: fileName,
-  });
+  };
+  if (range) {
+    params.Range = range;
+  }
+  const command = new GetObjectCommand(params);
 
   try {
     const response = await s3Client.send(command);
