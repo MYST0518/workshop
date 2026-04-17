@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Gift Station - 母の日に音楽を贈ろう 💐</title>
+  <meta name="description" content="お母さんへ贈る、世界にひとつだけの音楽プレゼント。曲をアップロードしてNFCカードに。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Floating Petals -->
+  <div class="petals" id="petals"></div>
+
+  <main class="container">
+    <header class="hero">
+      <div class="logo-icon">🌸</div>
+      <h1>Music Gift Station</h1>
+      <p class="subtitle">母の日に届ける、世界にひとつだけの音楽プレゼント 💐</p>
+    </header>
+
+    <!-- Upload Section -->
+    <section id="upload-section" class="card glass-card">
+      <h2>曲をアップロード</h2>
+      
+      <form id="upload-form">
+        <div class="form-group">
+          <label for="title-input">曲タイトル（任意）</label>
+          <input type="text" id="title-input" placeholder="曲のタイトルを入力..." class="input-field">
+        </div>
+
+        <div id="drop-zone" class="drop-zone">
+          <div class="drop-zone-content">
+            <div class="drop-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p class="drop-text">ファイルをドラッグ＆ドロップ</p>
+            <p class="drop-subtext">または</p>
+            <button type="button" id="browse-btn" class="btn btn-secondary">ファイルを選択</button>
+            <p class="drop-hint">MP3, WAV, M4A, AAC, OGG, FLAC（最大50MB）</p>
+          </div>
+          <input type="file" id="file-input" accept="audio/*" hidden>
+        </div>
+
+        <div id="file-info" class="file-info hidden">
+          <div class="file-icon">🎶</div>
+          <div class="file-details">
+            <span id="file-name" class="file-name"></span>
+            <span id="file-size" class="file-size"></span>
+          </div>
+          <button type="button" id="remove-file" class="btn-icon" title="ファイルを削除">✕</button>
+        </div>
+
+        <div id="progress-container" class="progress-container hidden">
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <span id="progress-text" class="progress-text">0%</span>
+        </div>
+
+        <button type="submit" id="upload-btn" class="btn btn-primary" disabled>
+          <span class="btn-text">アップロード</span>
+          <span class="btn-loader hidden">
+            <span class="spinner"></span>
+          </span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Result Section -->
+    <section id="result-section" class="card glass-card hidden">
+      <div class="success-animation">
+        <div class="checkmark-circle">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      </div>
+      <h2>アップロード完了！ 🌷</h2>
+      <p class="result-title">「<span id="result-song-title"></span>」</p>
+      
+      <div class="url-box">
+        <label>再生ページURL</label>
+        <div class="url-display">
+          <input type="text" id="result-url" readonly class="url-input">
+          <button type="button" id="copy-btn" class="btn btn-copy" title="URLをコピー">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span id="copy-text">コピー</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="qr-section">
+        <p class="qr-label">📱 QRコード（NFCの代わりにも使えます）</p>
+        <div id="qr-code" class="qr-code"></div>
+      </div>
+
+      <div class="action-buttons">
+        <a id="preview-link" href="#" target="_blank" class="btn btn-secondary">再生ページを開く</a>
+        <button type="button" id="upload-another" class="btn btn-ghost">もう一曲アップロード</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Music Gift Station — 母の日に届ける、あなただけの音楽 🌸</p>
+    </footer>
+  </main>
+
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const browseBtn = document.getElementById('browse-btn');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeFile = document.getElementById('remove-file');
+    const uploadForm = document.getElementById('upload-form');
+    const uploadBtn = document.getElementById('upload-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const uploadSection = document.getElementById('upload-section');
+    const resultSection = document.getElementById('result-section');
+    const titleInput = document.getElementById('title-input');
+
+    let selectedFile = null;
+
+    // Format file size
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // Handle file selection
+    function handleFile(file) {
+      if (!file) return;
+      selectedFile = file;
+      fileName.textContent = file.name;
+      fileSize.textContent = formatSize(file.size);
+      fileInfo.classList.remove('hidden');
+      dropZone.classList.add('has-file');
+      uploadBtn.disabled = false;
+
+      // Auto-fill title if empty
+      if (!titleInput.value.trim()) {
+        const name = file.name.replace(/\.[^.]+$/, '');
+        titleInput.value = name;
+      }
+    }
+
+    // Browse button
+    browseBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    // Remove file
+    removeFile.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      fileInfo.classList.add('hidden');
+      dropZone.classList.remove('has-file');
+      uploadBtn.disabled = true;
+    });
+
+    // Drag & drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+      dropZone.addEventListener(event, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    ['dragenter', 'dragover'].forEach(event => {
+      dropZone.addEventListener(event, () => dropZone.classList.add('drag-over'));
+    });
+
+    ['dragleave', 'drop'].forEach(event => {
+      dropZone.addEventListener(event, () => dropZone.classList.remove('drag-over'));
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('audio/')) {
+        handleFile(file);
+      }
+    });
+
+    // Upload
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!selectedFile) return;
+
+      const formData = new FormData();
+      formData.append('audio', selectedFile);
+      formData.append('title', titleInput.value.trim() || selectedFile.name.replace(/\.[^.]+$/, ''));
+
+      // Show progress
+      uploadBtn.disabled = true;
+      uploadBtn.querySelector('.btn-text').classList.add('hidden');
+      uploadBtn.querySelector('.btn-loader').classList.remove('hidden');
+      progressContainer.classList.remove('hidden');
+
+      try {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            progressFill.style.width = pct + '%';
+            progressText.textContent = pct + '%';
+          }
+        });
+
+        const result = await new Promise((resolve, reject) => {
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(JSON.parse(xhr.responseText));
+            } else {
+              const err = JSON.parse(xhr.responseText);
+              reject(new Error(err.error || 'アップロードに失敗しました'));
+            }
+          };
+          xhr.onerror = () => reject(new Error('ネットワークエラーが発生しました'));
+          xhr.open('POST', '/api/upload');
+          xhr.send(formData);
+        });
+
+        // Show result
+        showResult(result);
+      } catch (err) {
+        alert(err.message);
+        resetUpload();
+      }
+    });
+
+    function showResult(result) {
+      document.getElementById('result-song-title').textContent = result.title;
+      document.getElementById('result-url').value = result.url;
+      document.getElementById('preview-link').href = result.url;
+
+      // Generate QR code via API (no external JS library needed)
+      const qrContainer = document.getElementById('qr-code');
+      qrContainer.innerHTML = '';
+      const qrImg = document.createElement('img');
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=e8729a&bgcolor=ffffff&data=${encodeURIComponent(result.url)}`;
+      qrImg.src = qrUrl;
+      qrImg.alt = 'QRコード';
+      qrImg.width = 200;
+      qrImg.height = 200;
+      qrImg.style.borderRadius = '12px';
+      qrContainer.appendChild(qrImg);
+
+      uploadSection.classList.add('hidden');
+      resultSection.classList.remove('hidden');
+      resultSection.classList.add('fade-in');
+    }
+
+    // Copy URL
+    document.getElementById('copy-btn').addEventListener('click', async () => {
+      const url = document.getElementById('result-url').value;
+      try {
+        await navigator.clipboard.writeText(url);
+        const copyText = document.getElementById('copy-text');
+        copyText.textContent = 'コピー済み！';
+        setTimeout(() => { copyText.textContent = 'コピー'; }, 2000);
+      } catch {
+        document.getElementById('result-url').select();
+        document.execCommand('copy');
+      }
+    });
+
+    // Upload another
+    document.getElementById('upload-another').addEventListener('click', () => {
+      resetUpload();
+      resultSection.classList.add('hidden');
+      uploadSection.classList.remove('hidden');
+    });
+
+    function resetUpload() {
+      selectedFile = null;
+      fileInput.value = '';
+      titleInput.value = '';
+      fileInfo.classList.add('hidden');
+      dropZone.classList.remove('has-file');
+      uploadBtn.disabled = true;
+      uploadBtn.querySelector('.btn-text').classList.remove('hidden');
+      uploadBtn.querySelector('.btn-loader').classList.add('hidden');
+      progressContainer.classList.add('hidden');
+      progressFill.style.width = '0%';
+      progressText.textContent = '0%';
+    }
+
+    // Floating petals
+    (function createPetals() {
+      const container = document.getElementById('petals');
+      const flowers = ['🌸', '🌷', '💮', '🏵️', '✿', '❀'];
+      for (let i = 0; i < 15; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'petal';
+        petal.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+        petal.style.left = Math.random() * 100 + '%';
+        petal.style.animationDuration = (8 + Math.random() * 12) + 's';
+        petal.style.animationDelay = (Math.random() * 10) + 's';
+        petal.style.fontSize = (0.8 + Math.random() * 0.8) + 'rem';
+        container.appendChild(petal);
+      }
+    })();
+  </script>
+</body>
+</html>

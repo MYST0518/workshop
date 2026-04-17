@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading... - Music Gift Station</title>
+  <meta name="description" content="お母さんへの音楽プレゼント 🌸">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Play page specific styles */
+    .player-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .player-card {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .vinyl-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 2rem;
+    }
+
+    .vinyl {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        #fce4ec,
+        #f8bbd0,
+        #f48fb1,
+        #fce4ec,
+        #fff3e0,
+        #ffe0b2,
+        #fce4ec
+      );
+      box-shadow:
+        0 0 0 8px rgba(232, 114, 154, 0.1),
+        0 0 40px rgba(232, 114, 154, 0.15),
+        inset 0 0 30px rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    .vinyl.spinning {
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .vinyl-center {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%,
+        #fff,
+        rgba(232, 114, 154, 0.3),
+        rgba(244, 160, 181, 0.5)
+      );
+      box-shadow:
+        0 0 20px rgba(232, 114, 154, 0.2),
+        inset 0 0 10px rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    .vinyl-grooves {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 1px solid rgba(232, 114, 154, 0.08);
+      pointer-events: none;
+    }
+
+    .vinyl-grooves::before,
+    .vinyl-grooves::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(232, 114, 154, 0.06);
+    }
+
+    .vinyl-grooves::before {
+      top: 15px; left: 15px; right: 15px; bottom: 15px;
+    }
+
+    .vinyl-grooves::after {
+      top: 30px; left: 30px; right: 30px; bottom: 30px;
+    }
+
+    .song-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #e8729a, #f4a0b5, #f6c667);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .gift-message {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    /* Audio Controls */
+    .audio-controls {
+      width: 100%;
+    }
+
+    .play-button {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #e8729a, #f4a0b5, #f6c667);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(232, 114, 154, 0.35);
+    }
+
+    .play-button:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 30px rgba(232, 114, 154, 0.5);
+    }
+
+    .play-button:active {
+      transform: scale(0.98);
+    }
+
+    .play-button svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(232, 114, 154, 0.3);
+      background: white;
+      color: #e8729a;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+
+    .download-btn:hover {
+      background: rgba(232, 114, 154, 0.05);
+      border-color: #e8729a;
+      transform: translateY(-2px);
+    }
+
+    .seek-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .time-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+    }
+
+    .seek-bar {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(232, 114, 154, 0.15);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .seek-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #e8729a;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(232, 114, 154, 0.4);
+    }
+
+    .seek-bar::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #e8729a;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 8px rgba(232, 114, 154, 0.4);
+    }
+
+    .volume-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .volume-icon {
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+    }
+
+    .volume-bar {
+      width: 100px;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(232, 114, 154, 0.15);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .volume-bar::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Waveform Animation */
+    .waveform {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3px;
+      height: 30px;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .waveform.active {
+      opacity: 1;
+    }
+
+    .wave-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: linear-gradient(to top, #e8729a, #f4a0b5);
+      animation: wave 1.2s ease-in-out infinite;
+    }
+
+    @keyframes wave {
+      0%, 100% { height: 4px; }
+      50% { height: 24px; }
+    }
+
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .loading-state .spinner {
+      width: 40px;
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Floating Petals -->
+  <div class="petals" id="petals"></div>
+
+  <main class="player-container">
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-state">
+      <div class="spinner"></div>
+      <p style="color: var(--text-muted);">読み込み中...</p>
+    </div>
+
+    <!-- Player -->
+    <div id="player-card" class="card glass-card player-card hidden">
+      <div class="vinyl-container">
+        <div id="vinyl" class="vinyl">
+          <div class="vinyl-grooves"></div>
+          <div class="vinyl-center">🌸</div>
+        </div>
+      </div>
+
+      <h1 id="song-title" class="song-title"></h1>
+      <p class="gift-message">💐 お母さんへ、ありがとうの気持ちを込めて</p>
+
+      <div class="waveform" id="waveform">
+        <div class="wave-bar" style="animation-delay: 0s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.1s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.2s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.3s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.4s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.3s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.2s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.1s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.15s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.25s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.35s;"></div>
+        <div class="wave-bar" style="animation-delay: 0.05s;"></div>
+      </div>
+
+      <div class="audio-controls">
+        <button id="play-btn" class="play-button" title="再生">
+          <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor" class="hidden">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </button>
+
+
+
+        <div class="seek-container">
+          <span id="current-time" class="time-label">0:00</span>
+          <input type="range" id="seek-bar" class="seek-bar" min="0" max="100" value="0" step="0.1">
+          <span id="duration" class="time-label">0:00</span>
+        </div>
+
+        <div class="volume-container">
+          <span class="volume-icon" id="volume-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+          </span>
+          <input type="range" id="volume-bar" class="volume-bar" min="0" max="1" value="0.8" step="0.01">
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <p style="font-size: 0.75rem; color: var(--text-muted);">
+          🌸 Powered by Music Gift Station
+        </p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="card glass-card player-card hidden" style="padding: 3rem 2rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">😢</div>
+      <h2 style="margin-bottom: 0.5rem;">曲が見つかりません</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">このリンクは無効か、曲が削除された可能性があります。</p>
+      <a href="/" class="btn btn-secondary">トップページへ</a>
+    </div>
+  </main>
+
+  <script>
+    const songId = window.location.pathname.split('/').pop();
+    const audio = new Audio();
+
+    const loadingState = document.getElementById('loading-state');
+    const playerCard = document.getElementById('player-card');
+    const errorState = document.getElementById('error-state');
+    const playBtn = document.getElementById('play-btn');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    const seekBar = document.getElementById('seek-bar');
+    const currentTimeEl = document.getElementById('current-time');
+    const durationEl = document.getElementById('duration');
+    const volumeBar = document.getElementById('volume-bar');
+    const vinyl = document.getElementById('vinyl');
+    const waveform = document.getElementById('waveform');
+    const songTitle = document.getElementById('song-title');
+    const downloadLink = document.getElementById('download-link');
+
+    let isPlaying = false;
+
+    function formatTime(s) {
+      if (isNaN(s)) return '0:00';
+      const mins = Math.floor(s / 60);
+      const secs = Math.floor(s % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Load song
+    async function loadSong() {
+      try {
+        const res = await fetch(`/api/song/${songId}`);
+        if (!res.ok) throw new Error('Not found');
+        
+        const data = await res.json();
+        songTitle.textContent = data.title;
+        document.title = `${data.title} - Music Gift Station 🌸`;
+
+        audio.src = `/api/audio/${songId}`;
+        audio.volume = 0.8;
+        audio.preload = 'auto';
+
+        audio.addEventListener('loadedmetadata', () => {
+          durationEl.textContent = formatTime(audio.duration);
+          seekBar.max = audio.duration;
+        });
+
+        audio.addEventListener('timeupdate', () => {
+          if (!audio.duration) return;
+          seekBar.value = audio.currentTime;
+          currentTimeEl.textContent = formatTime(audio.currentTime);
+        });
+
+        audio.addEventListener('ended', () => {
+          isPlaying = false;
+          updatePlayState();
+          audio.currentTime = 0;
+        });
+
+        loadingState.classList.add('hidden');
+        playerCard.classList.remove('hidden');
+        playerCard.classList.add('fade-in');
+      } catch (err) {
+        loadingState.classList.add('hidden');
+        errorState.classList.remove('hidden');
+      }
+    }
+
+    function updatePlayState() {
+      if (isPlaying) {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+        vinyl.classList.add('spinning');
+        waveform.classList.add('active');
+      } else {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+        vinyl.classList.remove('spinning');
+        waveform.classList.remove('active');
+      }
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      isPlaying = !isPlaying;
+      updatePlayState();
+    });
+
+    seekBar.addEventListener('input', () => {
+      audio.currentTime = seekBar.value;
+    });
+
+    volumeBar.addEventListener('input', () => {
+      audio.volume = volumeBar.value;
+    });
+
+    document.getElementById('volume-icon').addEventListener('click', () => {
+      if (audio.volume > 0) {
+        audio.volume = 0;
+        volumeBar.value = 0;
+      } else {
+        audio.volume = 0.8;
+        volumeBar.value = 0.8;
+      }
+    });
+
+    // Floating petals
+    (function createPetals() {
+      const container = document.getElementById('petals');
+      const flowers = ['🌸', '🌷', '💮', '🏵️', '✿', '❀'];
+      for (let i = 0; i < 12; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'petal';
+        petal.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+        petal.style.left = Math.random() * 100 + '%';
+        petal.style.animationDuration = (8 + Math.random() * 12) + 's';
+        petal.style.animationDelay = (Math.random() * 10) + 's';
+        petal.style.fontSize = (0.8 + Math.random() * 0.8) + 'rem';
+        container.appendChild(petal);
+      }
+    })();
+
+    loadSong();
+  </script>
+</body>
+</html>
