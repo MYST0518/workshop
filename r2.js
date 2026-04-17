@@ -59,7 +59,50 @@ async function getFromR2(fileName) {
   }
 }
 
+/**
+ * Upload text/JSON to R2
+ * @param {string} text 
+ * @param {string} fileName 
+ * @param {string} contentType 
+ */
+async function uploadTextToR2(text, fileName, contentType = 'application/json') {
+  const command = new PutObjectCommand({
+    Bucket: R2_BUCKET_NAME,
+    Key: fileName,
+    Body: text,
+    ContentType: contentType,
+  });
+
+  try {
+    await s3Client.send(command);
+    console.log(`Successfully uploaded ${fileName} to R2`);
+    return fileName;
+  } catch (err) {
+    console.error('Error uploading text to R2:', err);
+    throw err;
+  }
+}
+
+/**
+ * Get text from R2
+ * @param {string} fileName 
+ */
+async function getTextFromR2(fileName) {
+  try {
+    const response = await getFromR2(fileName);
+    return await response.Body.transformToString();
+  } catch (err) {
+    if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404) {
+      return null; // file not found is expected if database doesn't exist yet
+    }
+    console.error('Error getting text from R2:', err);
+    throw err;
+  }
+}
+
 module.exports = {
   uploadToR2,
   getFromR2,
+  uploadTextToR2,
+  getTextFromR2,
 };

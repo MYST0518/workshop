@@ -190,7 +190,12 @@ app.use((err, req, res, next) => {
   next();
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🎵 Music Gift Station running at http://localhost:${PORT}`);
+// Init DB and Start server
+store.init().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🎵 Music Gift Station running at http://localhost:${PORT}`);
+  });
+}).catch(err => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
 });
